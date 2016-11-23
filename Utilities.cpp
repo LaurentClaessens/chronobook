@@ -16,42 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //*/
 
-#ifndef __MEDIA_H_2034__
-#define __MEDIA_H_2034__
-
 #include <string>
-using std::string;
+#include <iostream>
 
-/*
- 'Media' is a generic media that can describe
- - DVD
- - book
- - comics
- - CD
- - ...
+#include "Utilities.h"
 
- The purpose of the whole 'chronobook' is to sort a Media list
- by its field 'year'.
-//*/
-
-
-class Media
-{
-    private :
-        string title;
-        int year;
-        string media_type;      // dvd,cd,comic, ...
-    public :
-        Media(const string t,const int y);
-        void show() const;
-        int getYear() const;
-        string getTitle() const;
-};
-
-class DVD : public Media
-{
-    public :
-        DVD(const string t,const int y);
-};
-
-#endif
+void dprint(std::string s) {std::cout<<s<<std::endl;}
+void dprint(int s) {std::cout<<s<<std::endl;}

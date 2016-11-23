@@ -3,3 +3,5 @@
 chrono.vim
 chronobook
 *.o
+core
+.kk.log

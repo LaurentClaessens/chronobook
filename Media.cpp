@@ -29,7 +29,7 @@ Media::Media(const string t,const int y):
     year(y)
 {};
 
-void Media::Presentation() const
+void Media::show() const
 {
     std::cout<<"I am "<<title<<". Year : "<<year<<std::endl;
 };

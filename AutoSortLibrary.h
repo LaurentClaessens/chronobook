@@ -41,17 +41,40 @@ class AutoSortLibrary
         class node
         {
             private:
-                std::shared_ptr<Media> media;
+                std::unique_ptr<Media> media;
                 std::shared_ptr<node> next;
+
+                /*
+                 * Check if the node after `current` has a year later
+                 * than the one passed.
+                 * - `year` : the year to be checked.
+                 *   If the year of `this->getNext()` is greater than `year`,
+                 *   return `true`.
+                 *   Else return `false`.
+                 * If the next of `this` is `nullptr`, we consider
+                 * that `this` is the last node with a year lower than
+                 * the given one because it is the last one of the autolibrary.
+                 */
             public:
-                node(std::shared_ptr<Media> media);
+                // Building a node from a `unique_ptr<Media>` will make a 
+                // std::move. Thus the media will not be available from
+                // outside the node.
+                node(std::unique_ptr<Media> m_ptr);
+                node(node& n);
+
                 std::shared_ptr<node> getNext() const;
                 void setNext(std::shared_ptr<node>);
-                std::shared_ptr<Media> getMedia() const;
+                bool isNextLaterThan(const int year) const;
+                Media getMedia() const;
+                int getYear() const;
         };
 
         class Iterator
         {
+            // The operator * returns a *pointer* to a node and not a node.
+            // Rationale : when inserting a media in the collection, I'm doing
+            // a loop to know where to insert the new media. Retuning a node
+            // provokes the *copy* of the node.
             private :
                 std::shared_ptr<AutoSortLibrary::node> punt;
 
@@ -59,7 +82,7 @@ class AutoSortLibrary
                 Iterator(std::shared_ptr<AutoSortLibrary::node> p);
 
                 bool operator!= (const Iterator& other) const;
-                AutoSortLibrary::node& operator*() const;
+                std::shared_ptr<AutoSortLibrary::node> operator*() const;
                 const Iterator& operator++();
         };
 
@@ -74,9 +97,12 @@ class AutoSortLibrary
     public :
 
         // append an element to the library.
-        // the element is added in the list at the right place
+        // - the element is added in the list at the right place
         // to remain ordered.
-        void append(const std::shared_ptr<Media> m);
+        // - `m_ptr` is a  `unique_ptr<Media>`, and the ownership is 
+        //    automatically transfered to an other `unique_ptr<Media>` inside
+        //    the new node.
+        void append(std::unique_ptr<Media> m_ptr);
         void show() const;
 };
 

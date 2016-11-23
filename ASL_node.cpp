@@ -16,42 +16,36 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //*/
 
-#ifndef __MEDIA_H_2034__
-#define __MEDIA_H_2034__
+#include "AutoSortLibrary.h"
+#include "Utilities.h"
 
-#include <string>
-using std::string;
-
-/*
- 'Media' is a generic media that can describe
- - DVD
- - book
- - comics
- - CD
- - ...
-
- The purpose of the whole 'chronobook' is to sort a Media list
- by its field 'year'.
-//*/
-
-
-class Media
+AutoSortLibrary::node::node(std::unique_ptr<Media> m_ptr):
+    media(std::move(m_ptr))
 {
-    private :
-        string title;
-        int year;
-        string media_type;      // dvd,cd,comic, ...
-    public :
-        Media(const string t,const int y);
-        void show() const;
-        int getYear() const;
-        string getTitle() const;
+    next=nullptr;
 };
 
-class DVD : public Media
-{
-    public :
-        DVD(const string t,const int y);
-};
+AutoSortLibrary::node::node(node& n):
+    next(n.next),
+    media(std::move(n.media))
+{ }
 
-#endif
+std::shared_ptr<AutoSortLibrary::node> AutoSortLibrary::node::getNext() const
+{
+    return next; 
+}
+
+void AutoSortLibrary::node::setNext(std::shared_ptr<AutoSortLibrary::node> m_ptr)
+{
+    next=m_ptr;
+}
+
+int AutoSortLibrary::node::getYear() const
+{
+    return getMedia().getYear();
+}
+
+Media AutoSortLibrary::node::getMedia() const
+{
+    return *media;
+};

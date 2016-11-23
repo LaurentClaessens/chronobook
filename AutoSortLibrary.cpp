@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iostream>
 
 #include "AutoSortLibrary.h"
+#include "Utilities.h"
 
 AutoSortLibrary::Iterator::Iterator(std::shared_ptr<AutoSortLibrary::node> p):
     punt(p)
@@ -32,9 +33,9 @@ bool AutoSortLibrary::Iterator::operator!= (const Iterator& other) const
     return punt != other.punt;
 }
 
-AutoSortLibrary::node& AutoSortLibrary::Iterator::operator*() const 
+std::shared_ptr<AutoSortLibrary::node> AutoSortLibrary::Iterator::operator*() const 
 {
-    return *punt;
+    return punt;
 }
 const AutoSortLibrary::Iterator& AutoSortLibrary::Iterator::operator++()
 {
@@ -42,28 +43,6 @@ const AutoSortLibrary::Iterator& AutoSortLibrary::Iterator::operator++()
     return *this;
 }
 
-
-// node
-std::shared_ptr<AutoSortLibrary::node> AutoSortLibrary::node::getNext() const
-{
-    return next; 
-}
-
-void AutoSortLibrary::node::setNext(std::shared_ptr<AutoSortLibrary::node> m_ptr)
-{
-    next=m_ptr;
-}
-
-AutoSortLibrary::node::node(std::shared_ptr<Media> m):
-    media(m)
-{
-    next=nullptr;
-};
-
-std::shared_ptr<Media> AutoSortLibrary::node::getMedia() const
-{
-    return media;
-};
 
 // AutoSortLibrary
 
@@ -77,33 +56,65 @@ AutoSortLibrary::Iterator AutoSortLibrary::end() const
     return AutoSortLibrary::Iterator(nullptr);
 }
 
+bool AutoSortLibrary::node::isNextLaterThan(const int year  ) const
+{
+    if (auto s=getNext())
+    {
+        if (s->getYear() > year )
+        {
+            return true;
+        }
+    }
+    else  
+    {
+        return true;
+    }
+    return false;
+}
+
 std::shared_ptr<AutoSortLibrary::node> AutoSortLibrary::getLastNodeBefore(const int year) const
 {
     for (auto current_node:*this)
     {
-        if (current_node.getMedia()->getYear() > year) {return first;}
+        if (  current_node->isNextLaterThan(year)  )
+        {
+            return current_node;
+        }
     }
-    return last;
 };
-void AutoSortLibrary::append(const std::shared_ptr<Media> m)
+
+void AutoSortLibrary::append(std::unique_ptr<Media> m_ptr)
 {
-    auto new_node = std::make_shared<AutoSortLibrary::node>(AutoSortLibrary::node(m));
+    AutoSortLibrary::node new_node(std::move(m_ptr));
+    auto new_node_ptr = std::make_shared<node>(new_node);
+
+    // If the first one is nullptr, the library is empty
     if (first==nullptr)
     {
-        first=new_node;
-        last=new_node;
+        first=new_node_ptr;
+        last=new_node_ptr;
         return;
     }
-    auto m_year = m->getYear();
+    // the year of the media to be append
+    auto m_year = new_node_ptr->getYear();
+
+    if (first->getYear()>m_year)
+    {
+        new_node_ptr->setNext(first);
+        first=new_node_ptr;
+        return;
+    }
+
     auto last_before = getLastNodeBefore(m_year);
-    new_node->setNext(last_before->getNext());
-    last_before->setNext(new_node);
+
+    new_node_ptr->setNext(last_before->getNext());
+    last_before->setNext(new_node_ptr);
 };
 
 void AutoSortLibrary::show() const
 {
     for (auto current_node:*this)
     {
-        current_node.getMedia()->Presentation();
+        current_node->getMedia().show();
     }
 };
